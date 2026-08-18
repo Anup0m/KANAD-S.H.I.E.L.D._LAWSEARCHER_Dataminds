@@ -49,7 +49,7 @@ function Navigation() {
       backdropFilter: 'blur(20px)',
       borderBottom: '1px solid var(--border-color)',
     }}>
-      <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem 1.5rem' }}>
+      <div className="container header-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem 1.5rem' }}>
 
         {/* Logo */}
         <Link to="/" style={{ textDecoration: 'none' }}>
@@ -62,15 +62,15 @@ function Navigation() {
         </Link>
 
         {/* Nav Links */}
-        <nav style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+        <nav className="nav-links" style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
           <Link to="/" className="flex items-center gap-2" style={{ ...isActive('/'), transition: 'color 0.2s', fontSize: '0.9rem', textDecoration: 'none' }}>
-            <Search size={16} /> Search
+            <Search size={16} /> <span className="hide-on-mobile">Search</span>
           </Link>
           <Link to="/chat" className="flex items-center gap-2" style={{ ...isActive('/chat'), transition: 'color 0.2s', fontSize: '0.9rem', textDecoration: 'none' }}>
-            <MessageSquare size={16} /> AI Chat
+            <MessageSquare size={16} /> <span className="hide-on-mobile">AI Chat</span>
           </Link>
           <Link to="/dashboard" className="flex items-center gap-2" style={{ ...isActive('/dashboard'), transition: 'color 0.2s', fontSize: '0.9rem', textDecoration: 'none' }}>
-            <LayoutDashboard size={16} /> Analytics
+            <LayoutDashboard size={16} /> <span className="hide-on-mobile">Analytics</span>
           </Link>
         </nav>
 
@@ -135,7 +135,7 @@ function Navigation() {
           )}
 
           {/* Status pill */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '999px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', color: '#ffffff', fontWeight: 700 }}>
+          <div className="hide-on-mobile" style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '999px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', color: '#ffffff', fontWeight: 700 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ffffff', display: 'inline-block', boxShadow: '0 0 8px #ffffff' }}></span>
             {docCount} Docs Indexed
           </div>

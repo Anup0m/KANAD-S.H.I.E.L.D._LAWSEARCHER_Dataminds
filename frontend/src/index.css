@@ -433,3 +433,22 @@ a:hover { color: #e4e4e7; }
 
 /* Divider */
 .divider { border: none; border-top: 1px solid var(--border-color); }
+
+/* ========== MOBILE RESPONSIVENESS ========== */
+@media (max-width: 768px) {
+  .hide-on-mobile { display: none !important; }
+  
+  .nav-links { gap: 1rem !important; }
+  .header-container { padding: 0.6rem 1rem !important; }
+  
+  .brand-title-badge { padding: 0.25rem 0.5rem; }
+  .brand-law-tag, .brand-searcher-tag { font-size: 0.85rem; }
+  
+  .hero-law-tag, .hero-searcher-tag { font-size: 1.4rem; }
+  .hero-lawsearcher-title { padding: 0.4rem 1rem; margin-bottom: 1rem; }
+  
+  .glass-panel { padding: 1rem !important; }
+  
+  .input-field { font-size: 1rem; } /* Prevent iOS zoom */
+  .btn { padding: 0.6rem 1.2rem; }
+}
