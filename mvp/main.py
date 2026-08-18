@@ -313,6 +313,36 @@ Provide a clear, concise answer citing the document titles."""
         print(f"Chat error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+from fastapi.responses import Response
+
+@app.get("/preview/{doc_id}.jpg")
+def get_document_preview(doc_id: str):
+    try:
+        response = supabase.table("documents").select("pdf_url").eq("id", doc_id).execute()
+        if not response.data or not response.data[0].get("pdf_url"):
+            raise HTTPException(status_code=404, detail="Document not found")
+            
+        pdf_url = response.data[0]["pdf_url"]
+        
+        import requests
+        import fitz
+        
+        # Download PDF bytes
+        pdf_response = requests.get(pdf_url, timeout=10)
+        pdf_response.raise_for_status()
+        
+        # Render first page
+        doc = fitz.open(stream=pdf_response.content, filetype="pdf")
+        page = doc.load_page(0)
+        # 1.5x zoom for decent preview quality without being too heavy
+        pix = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5))
+        img_bytes = pix.tobytes("jpeg")
+        
+        return Response(content=img_bytes, media_type="image/jpeg")
+    except Exception as e:
+        print(f"Preview error: {e}")
+        raise HTTPException(status_code=500, detail="Could not generate preview")
+
 @app.get("/share/{doc_id}", response_class=HTMLResponse)
 def share_document(doc_id: str):
     """
@@ -333,7 +363,9 @@ def share_document(doc_id: str):
         elif not desc:
             desc = f"View this {doc.get('doc_type', 'document')} on Kanan - Legal Document Intelligence."
             
-        og_image = "https://raw.githubusercontent.com/Anup0m/KANAD-S.H.I.E.L.D._LAWSEARCHER_Dataminds/main/frontend/public/favicon.png"
+        backend_url = os.getenv("BACKEND_URL", "https://kanan-backend-8ppm.onrender.com").rstrip("/")
+        og_image = f"{backend_url}/preview/{doc_id}.jpg"
+        
         frontend_base = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
         frontend_url = f"{frontend_base}/document/{doc_id}"
 
