@@ -333,8 +333,9 @@ def share_document(doc_id: str):
         elif not desc:
             desc = f"View this {doc.get('doc_type', 'document')} on Kanan - Legal Document Intelligence."
             
-        og_image = "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=1200&auto=format&fit=crop"
-        frontend_url = f"http://localhost:5173/document/{doc_id}"
+        og_image = "https://raw.githubusercontent.com/Anup0m/KANAD-S.H.I.E.L.D._LAWSEARCHER_Dataminds/main/frontend/public/favicon.png"
+        frontend_base = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+        frontend_url = f"{frontend_base}/document/{doc_id}"
 
         html_content = f"""<!DOCTYPE html>
 <html>
