@@ -100,7 +100,9 @@ def ingest_all_pdfs(folder_path="pdfs", check_online: bool = False):
             print(f"Failed to process {filename}: {e}")
         finally:
             import time
-            time.sleep(3)
+            time.sleep(15)
+
+
 
 # ---------------------------------------------------------
 # FASTAPI ENDPOINTS

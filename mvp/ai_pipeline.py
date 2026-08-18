@@ -79,7 +79,7 @@ def process_document(text: str) -> dict:
     """
     
     response = client.models.generate_content(
-        model=GENERATION_MODEL,
+        model='gemini-3.7-flash',
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json",

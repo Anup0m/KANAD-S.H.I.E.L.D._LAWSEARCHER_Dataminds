@@ -133,3 +133,5 @@ def scrape_html_to_text(url: str) -> str:
     except Exception as e:
         print(f"Failed to scrape HTML from {url}: {e}")
         return ""
+
+
