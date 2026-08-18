@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, ExternalLink, FileText, Clock, Scale, BookOpen, Copy, Check, Bookmark, BookmarkCheck, Download, Link as LinkIcon } from 'lucide-react';
-import { getDoc } from '../lib/api';
+import { getDoc, BASE_URL } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import html2canvas from 'html2canvas';
@@ -73,7 +73,7 @@ export default function DocumentDetail() {
 
   const handleShare = () => {
     // We copy the backend URL for Open Graph metadata sharing
-    const shareUrl = `http://127.0.0.1:8000/share/${id}`;
+    const shareUrl = `${BASE_URL}/share/${id}`;
     navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
