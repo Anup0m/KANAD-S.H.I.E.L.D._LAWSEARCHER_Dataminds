@@ -2,7 +2,7 @@ import os
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
-from db import already_ingested_url
+from db import already_ingested, already_ingested_url
 
 def get_latest_documents_from_india_code(listing_url: str = "https://www.indiacode.nic.in/handle/123456789/2455/browse?type=shorttitle"):
     """
@@ -36,10 +36,6 @@ def get_latest_documents_from_india_code(listing_url: str = "https://www.indiaco
     new_docs = []
     
     for i, detail_url in enumerate(detail_links):
-        # Limit to 5 documents per crawl to keep testing lightweight
-        if len(new_docs) >= 5:
-            break
-            
         print(f"[{i+1}/{len(detail_links)}] Inspecting: {detail_url}")
         try:
             res = requests.get(detail_url, headers=headers, timeout=10)
@@ -53,7 +49,7 @@ def get_latest_documents_from_india_code(listing_url: str = "https://www.indiaco
                 pdf_url = pdf_meta['content']
                 title = title_meta['content']
                 
-                if already_ingested_url(pdf_url):
+                if already_ingested_url(pdf_url) or already_ingested(title):
                     print(f"-> Already in database: {title}")
                 else:
                     print(f"-> NEW Document found: {title}")
@@ -73,7 +69,7 @@ def get_latest_documents_from_india_code(listing_url: str = "https://www.indiaco
                     h2_title = detail_soup.find('h2')
                     title = h2_title.text.strip() if h2_title else "Untitled Document"
                     
-                    if already_ingested_url(bitstream_link):
+                    if already_ingested_url(bitstream_link) or already_ingested(title):
                         print(f"-> Already in database: {title}")
                     else:
                         print(f"-> NEW Document found: {title}")
