@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from db import already_ingested, already_ingested_url
 
-def get_latest_documents_from_india_code(listing_url: str = "https://www.indiacode.nic.in/handle/123456789/2455/browse?type=shorttitle"):
+def get_latest_documents_from_india_code(listing_url: str = "https://www.indiacode.nic.in/handle/123456789/2455/browse?type=shorttitle&rpp=100"):
     """
     Crawls a listing page (default: Gujarat State Acts) on India Code.
     Finds detail links, extracts the PDF download URL, and returns a list of new documents to download.
