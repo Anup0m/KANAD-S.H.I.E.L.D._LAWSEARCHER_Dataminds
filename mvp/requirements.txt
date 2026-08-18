@@ -6,3 +6,4 @@ PyMuPDF
 beautifulsoup4
 requests
 python-dotenv
+tenacity
