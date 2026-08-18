@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search as SearchIcon, Filter, FileText, ExternalLink, Clock, ChevronDown, X, Sparkles, Scale, BookOpen, Gavel, Link as LinkIcon, Tag, Building } from 'lucide-react';
+import { Search as SearchIcon, Filter, FileText, ExternalLink, Clock, ChevronDown, X, Sparkles, Scale, BookOpen, Gavel, Link as LinkIcon, Tag, Building, Mic } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { searchDocs, getStats } from '../lib/api';
 
@@ -210,6 +210,7 @@ export default function SearchPage() {
   const [error, setError] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [docCount, setDocCount] = useState(136);
+  const [isListening, setIsListening] = useState(false);
 
   useEffect(() => {
     getStats().then(s => { if (s && s.total_documents) setDocCount(s.total_documents); }).catch(console.error);
@@ -282,6 +283,31 @@ export default function SearchPage() {
     applySearch({ docType: '', region: '', department: '', yearFrom: '', yearTo: '' });
   };
 
+  const handleVoiceSearch = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert("Voice search is not supported in this browser. Please use Chrome.");
+      return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN'; // Tuned for Indian context
+    recognition.interimResults = false;
+    
+    recognition.onstart = () => setIsListening(true);
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setLocalQuery(transcript);
+      applySearch({ q: transcript });
+    };
+    recognition.onerror = (event) => {
+      console.error("Voice search error", event.error);
+      setIsListening(false);
+    };
+    recognition.onend = () => setIsListening(false);
+    
+    recognition.start();
+  };
+
   const filteredSuggestions = localQuery.length > 0
     ? SUGGESTIONS.filter(s => s.toLowerCase().includes(localQuery.toLowerCase())).slice(0, 5)
     : SUGGESTIONS.slice(0, 6);
@@ -333,11 +359,22 @@ export default function SearchPage() {
                 placeholder="Search laws, GRs, judgments, notifications..."
                 style={{
                   width: '100%',
-                  padding: '0.85rem 1rem 0.85rem 2.9rem',
+                  padding: '0.85rem 3.5rem 0.85rem 2.9rem',
                   background: 'transparent', border: 'none', outline: 'none',
                   color: 'var(--text-primary)', fontSize: '1.02rem', fontFamily: 'var(--font-body)',
                 }}
               />
+              <button 
+                onClick={handleVoiceSearch}
+                title="Search by voice"
+                style={{ 
+                  position: 'absolute', right: '1.1rem', top: '50%', transform: 'translateY(-50%)', 
+                  background: 'transparent', border: 'none', cursor: 'pointer',
+                  color: isListening ? '#ef4444' : 'var(--text-muted)'
+                }}
+              >
+                <Mic size={18} className={isListening ? 'animate-pulse' : ''} />
+              </button>
             </div>
             <button className="btn btn-primary" onClick={() => applySearch()} style={{ padding: '0.75rem 2.2rem' }}>
               Search
