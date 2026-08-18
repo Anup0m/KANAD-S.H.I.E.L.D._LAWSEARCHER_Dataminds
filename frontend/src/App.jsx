@@ -6,9 +6,10 @@ import DocumentDetail from './pages/DocumentDetail';
 import Dashboard from './pages/Dashboard';
 import ChatPage from './pages/ChatPage';
 import ProfilePage from './pages/ProfilePage';
-import { getWhatsNew } from './lib/api';
+import { getWhatsNew, getStats } from './lib/api';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AuthModal from './components/AuthModal';
+import BackgroundShader from './components/BackgroundShader';
 import './index.css';
 
 function Navigation() {
@@ -16,11 +17,13 @@ function Navigation() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [recentDocs, setRecentDocs] = useState([]);
+  const [docCount, setDocCount] = useState(137);
   const notifRef = useRef(null);
   const { user } = useAuth();
 
   useEffect(() => {
     getWhatsNew().then(setRecentDocs).catch(console.error);
+    getStats().then(s => { if (s && s.total_documents) setDocCount(s.total_documents); }).catch(console.error);
     
     // Close dropdown on click outside
     const handleClickOutside = (e) => {
@@ -39,22 +42,23 @@ function Navigation() {
 
   return (
     <>
+      <div className="bw-stripe-banner" />
       <header style={{
         position: 'sticky', top: 0, zIndex: 100,
-      background: 'rgba(10,15,30,0.85)',
+      background: 'rgba(10,10,12,0.92)',
       backdropFilter: 'blur(20px)',
       borderBottom: '1px solid var(--border-color)',
     }}>
       <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem 1.5rem' }}>
 
         {/* Logo */}
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
-          <div style={{ background: 'linear-gradient(135deg,#f59e0b,#fb923c)', padding: '6px', borderRadius: '8px', display: 'flex' }}>
-            <Scale size={20} color="#0a0f1e" strokeWidth={2.5} />
+        <Link to="/" style={{ textDecoration: 'none' }}>
+          <div className="brand-title-badge">
+            <Scale size={18} color="#ffffff" strokeWidth={2.5} />
+            <span className="brand-law-tag">LAW</span>
+            <span className="vertical-bw-stripe-sm"></span>
+            <span className="brand-searcher-tag">SEARCHER</span>
           </div>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-            Kanan
-          </span>
         </Link>
 
         {/* Nav Links */}
@@ -131,9 +135,9 @@ function Navigation() {
           )}
 
           {/* Status pill */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '999px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', color: '#10b981', fontWeight: 600 }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 8px #10b981' }}></span>
-            110 Docs Indexed
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '999px', padding: '0.3rem 0.8rem', fontSize: '0.75rem', color: '#ffffff', fontWeight: 700 }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ffffff', display: 'inline-block', boxShadow: '0 0 8px #ffffff' }}></span>
+            {docCount} Docs Indexed
           </div>
         </div>
       </div>
@@ -147,7 +151,8 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <div style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', minHeight: '100vh' }}>
+        <div style={{ backgroundColor: 'transparent', color: 'var(--text-primary)', minHeight: '100vh', position: 'relative' }}>
+          <BackgroundShader />
           <Navigation />
           <Routes>
             <Route path="/" element={<SearchPage />} />

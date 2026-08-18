@@ -19,6 +19,8 @@ export async function getDoc(id) {
   return res.json();
 }
 
+export const getDocumentDetail = getDoc;
+
 export async function getStats() {
   const res = await fetch(`${BASE_URL}/stats`);
   if (!res.ok) throw new Error('Stats failed');

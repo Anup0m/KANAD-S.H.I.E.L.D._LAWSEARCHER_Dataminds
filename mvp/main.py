@@ -118,7 +118,7 @@ def root():
 
 @app.get("/search")
 def search(
-    q: str = Query(..., description="The search query"),
+    q: Optional[str] = Query("", description="The search query"),
     region: Optional[str] = Query(None, description="Filter by region: central, gujarat, unknown"),
     doc_type: Optional[str] = Query(None, description="Filter by type: act, gr, notification, other"),
     department: Optional[str] = Query(None, description="Filter by department name"),
@@ -128,10 +128,45 @@ def search(
 ):
     """Searches for documents by semantic meaning, with optional filters."""
     try:
-        query_embedding = embed(q)
-        results = search_by_embedding(query_embedding, limit=limit,
-                                      region=region, doc_type=doc_type,
-                                      department=department)
+        q_clean = (q or "").strip()
+        
+        if q_clean:
+            query_embedding = embed(q_clean)
+            results = search_by_embedding(query_embedding, limit=limit,
+                                          region=region, doc_type=doc_type,
+                                          department=department)
+            
+            # Fetch missing region, doc_type, and department fields that match_documents omits
+            if results:
+                ids = [r["id"] for r in results]
+                try:
+                    docs_info = supabase.table("documents").select("id, region, doc_type, department, referenced_acts, referenced_act_ids").in_("id", ids).execute()
+                    doc_map = {d["id"]: d for d in docs_info.data}
+                    for r in results:
+                        if r["id"] in doc_map:
+                            r["region"] = doc_map[r["id"]].get("region")
+                            r["doc_type"] = doc_map[r["id"]].get("doc_type")
+                            r["department"] = doc_map[r["id"]].get("department") or r.get("department")
+                            r["referenced_acts"] = doc_map[r["id"]].get("referenced_acts")
+                            r["referenced_act_ids"] = doc_map[r["id"]].get("referenced_act_ids")
+                except Exception as db_e:
+                    print(f"Error fetching extra doc info: {db_e}")
+        else:
+            # Bypass vector search if query is empty; just use metadata filters
+            query = supabase.table("documents").select(
+                "id, title, summary_en, content, source_url, pdf_url, publish_year, department, keywords, region, doc_type, referenced_acts, referenced_act_ids"
+            ).order("created_at", desc=True).limit(limit)
+            
+            if region:
+                query = query.eq("region", region)
+            if doc_type:
+                query = query.eq("doc_type", doc_type)
+            if department:
+                query = query.eq("department", department)
+                
+            response = query.execute()
+            results = response.data
+
         # Apply year filter client-side (fast, avoids SQL changes)
         if year_from:
             results = [r for r in results if r.get('publish_year') and r['publish_year'] >= year_from]
@@ -140,8 +175,9 @@ def search(
             
         # Log the search asynchronously (fire and forget via supabase)
         try:
-            supabase.table("search_log").insert({
-                "query_text": q.lower().strip(),
+            if q_clean:
+                supabase.table("search_log").insert({
+                    "query_text": q_clean.lower(),
                 "region_filter": region,
                 "doc_type_filter": doc_type,
                 "result_count": len(results)

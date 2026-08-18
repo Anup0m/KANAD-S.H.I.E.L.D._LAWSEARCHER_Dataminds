@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, FileText, Clock, Scale, BookOpen, Copy, Check, Bookmark, BookmarkCheck, Download, Link as LinkIcon } from 'lucide-react';
+import { ArrowLeft, ExternalLink, FileText, Clock, Scale, BookOpen, Copy, Check, Bookmark, BookmarkCheck, Download, Link as LinkIcon, Building, Tag } from 'lucide-react';
 import { getDoc, BASE_URL } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
@@ -193,13 +193,42 @@ export default function DocumentDetail() {
               <MetaRow icon={<Clock size={14} />} label="Year" value={doc.publish_year?.toString()} />
               <MetaRow icon={<Scale size={14} />} label="Jurisdiction" value={regionLabel} />
               <MetaRow icon={<FileText size={14} />} label="Type" value={doc.doc_type?.charAt(0).toUpperCase() + doc.doc_type?.slice(1)} />
+              {doc.department && <MetaRow icon={<Building size={14} />} label="Department" value={doc.department} />}
             </div>
+
+            {/* Keywords */}
+            {doc.keywords && (Array.isArray(doc.keywords) ? doc.keywords : (typeof doc.keywords === 'string' ? JSON.parse(doc.keywords || '[]') : [])).length > 0 && (
+              <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Extracted Keywords</span>
+                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
+                  {(Array.isArray(doc.keywords) ? doc.keywords : JSON.parse(doc.keywords || '[]')).map((kw, i) => (
+                    <span key={i} style={{ fontSize: '0.72rem', color: '#ffffff', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 600 }}>
+                      <Tag size={10} style={{ display: 'inline', marginRight: 4 }} />{kw}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Referenced Acts / Citations */}
+            {doc.referenced_acts && (Array.isArray(doc.referenced_acts) ? doc.referenced_acts : (typeof doc.referenced_acts === 'string' ? JSON.parse(doc.referenced_acts || '[]') : [])).length > 0 && (
+              <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cited Acts & Precedents</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginTop: '0.5rem' }}>
+                  {(Array.isArray(doc.referenced_acts) ? doc.referenced_acts : JSON.parse(doc.referenced_acts || '[]')).map((act, i) => (
+                    <div key={i} style={{ fontSize: '0.8rem', color: '#ffffff', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', padding: '0.4rem 0.75rem', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <LinkIcon size={12} color="#ffffff" /> {act}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* AI Summary */}
           {doc.summary_en && (
             <div className="glass-panel animate-fade-in delay-100" style={{ padding: '1.25rem' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.85rem', color: 'var(--accent-primary)' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.85rem', color: '#ffffff' }}>
                 <BookOpen size={15} /> AI Summary
               </h3>
               <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
@@ -208,16 +237,26 @@ export default function DocumentDetail() {
             </div>
           )}
 
-          {/* Document content preview */}
+          {/* Full Extracted Document Text */}
           {doc.content && (
-            <div className="glass-panel animate-fade-in delay-200" style={{ padding: '1.25rem', maxHeight: '280px', overflow: 'hidden', position: 'relative' }}>
-              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.9rem', marginBottom: '0.85rem', color: 'var(--text-secondary)' }}>
-                <FileText size={15} /> Document Extract
-              </h3>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.6, fontFamily: 'monospace' }}>
-                {doc.content.slice(0, 600)}...
-              </p>
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '60px', background: 'linear-gradient(transparent, var(--glass-bg))', borderRadius: '0 0 16px 16px' }} />
+            <div className="glass-panel animate-fade-in delay-200" style={{ padding: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+                <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.9rem', color: '#ffffff' }}>
+                  <FileText size={15} /> Full Extracted OCR Text
+                </h3>
+                <button
+                  className="btn btn-ghost"
+                  style={{ padding: '0.2rem 0.6rem', fontSize: '0.75rem' }}
+                  onClick={() => navigator.clipboard.writeText(doc.content)}
+                >
+                  <Copy size={12} /> Copy Text
+                </button>
+              </div>
+              <div style={{ maxHeight: '350px', overflowY: 'auto', background: 'rgba(0,0,0,0.5)', padding: '0.875rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.65, whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
+                  {doc.content}
+                </p>
+              </div>
             </div>
           )}
           
