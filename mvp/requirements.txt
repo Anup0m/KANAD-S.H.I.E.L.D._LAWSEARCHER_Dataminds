@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+supabase
+google-genai
+PyMuPDF
+beautifulsoup4
+requests
+python-dotenv
