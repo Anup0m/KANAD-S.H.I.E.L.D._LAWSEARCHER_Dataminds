@@ -1,6 +1,6 @@
 import os
 import json
-import fitz  # PyMuPDF
+import pymupdf  # PyMuPDF (replacing deprecated fitz import)
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
@@ -31,7 +31,7 @@ def extract_text(pdf_path: str) -> str:
     """Extract text from a PDF file using PyMuPDF. Fallback to Gemini Vision OCR if scanned.
     Scanned PDFs are NEVER skipped — OCR retries up to 6 times on server errors."""
     print(f"Extracting text from {pdf_path}...")
-    doc = fitz.open(pdf_path)
+    doc = pymupdf.open(pdf_path)
     text = ""
     for page in doc:
         text += page.get_text() + "\n"
