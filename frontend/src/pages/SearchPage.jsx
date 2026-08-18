@@ -209,7 +209,7 @@ export default function SearchPage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [docCount, setDocCount] = useState(136);
+  const [docCount, setDocCount] = useState(137);
   const [isListening, setIsListening] = useState(false);
   const [voiceLang, setVoiceLang] = useState('en-IN');
 
