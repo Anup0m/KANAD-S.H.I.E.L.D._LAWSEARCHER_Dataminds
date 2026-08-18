@@ -36,7 +36,7 @@ function Navigation() {
         });
       }
     }).catch(console.error);
-    getStats().then(s => { if (s && s.total_documents) setDocCount(s.total_documents); }).catch(console.error);
+    getStats().then(s => { if (s && s.total) setDocCount(s.total); }).catch(console.error);
     
     // Close dropdown on click outside
     const handleClickOutside = (e) => {

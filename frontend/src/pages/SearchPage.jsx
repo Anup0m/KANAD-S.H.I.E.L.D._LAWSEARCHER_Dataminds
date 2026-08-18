@@ -214,7 +214,7 @@ export default function SearchPage() {
   const [voiceLang, setVoiceLang] = useState('en-IN');
 
   useEffect(() => {
-    getStats().then(s => { if (s && s.total_documents) setDocCount(s.total_documents); }).catch(console.error);
+    getStats().then(s => { if (s && s.total) setDocCount(s.total); }).catch(console.error);
   }, []);
 
   const inputRef = useRef(null);
