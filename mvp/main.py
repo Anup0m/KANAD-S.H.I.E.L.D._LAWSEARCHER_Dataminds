@@ -1,9 +1,14 @@
 import os
+import sys
 import glob
 from typing import Optional
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+
+# Force UTF-8 output on Windows to handle Gujarati/Unicode characters in legal docs
+sys.stdout.reconfigure(encoding='utf-8')
+sys.stderr.reconfigure(encoding='utf-8')
 
 from ai_pipeline import extract_text, process_document, embed, client, GENERATION_MODEL
 from db import already_ingested_url, insert_document, search_by_embedding, supabase, get_stats, upload_pdf_to_storage
@@ -72,11 +77,9 @@ def ingest_all_pdfs(folder_path="pdfs", check_online: bool = False):
         try:
             # 1. Extract text
             text = extract_text(pdf_path)
-            if not text.strip():
-                print(f"Skipping {filename}: No extractable text found (scanned PDF).")
-                continue
-                
             # Run Gemini extraction on text
+            # Sanitize text to handle special Unicode/Gujarati chars from scanned PDFs
+            text = text.encode('utf-8', errors='ignore').decode('utf-8')
             doc_data = process_document(text)
             
             # Use filename as backup title if Gemini failed to extract it

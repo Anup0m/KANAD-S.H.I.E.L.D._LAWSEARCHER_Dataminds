@@ -26,6 +26,9 @@ def insert_document(doc_data: dict, content: str, embedding: list[float], pdf_ur
     """Inserts the document and its embedding into Supabase."""
     print(f"Inserting '{doc_data.get('title')}' into Supabase...")
     
+    # Sanitize content to handle special/Unicode characters from scanned PDFs
+    safe_content = content.encode('utf-8', errors='ignore').decode('utf-8')
+    
     referenced_acts = doc_data.get("referenced_acts") or []
     referenced_act_ids = []
     
@@ -57,7 +60,7 @@ def insert_document(doc_data: dict, content: str, embedding: list[float], pdf_ur
         "keywords": doc_data.get("keywords") or [],
         "referenced_acts": referenced_acts,
         "referenced_act_ids": referenced_act_ids,
-        "content": content,
+        "content": safe_content,
         "embedding": embedding
     }
     

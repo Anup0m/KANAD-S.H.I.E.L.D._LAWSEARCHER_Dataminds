@@ -11,11 +11,25 @@ load_dotenv()
 # Configure new Gemini Client
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-GENERATION_MODEL = "gemini-3.5-flash"
+GENERATION_MODEL = "gemini-flash-lite-latest"
 EMBEDDING_MODEL = "gemini-embedding-2"
 
+@retry(stop=stop_after_attempt(6), wait=wait_exponential(multiplier=2, min=5, max=60))
+def _ocr_images_with_gemini(images: list) -> str:
+    """Uses Gemini Vision to OCR a list of page images. Retries automatically on 503/429 errors."""
+    prompt = "Transcribe all text from these document pages verbatim. Output only the transcription."
+    contents = [prompt] + images
+    response = client.models.generate_content(
+        model=GENERATION_MODEL,
+        contents=contents
+    )
+    transcribed_text = response.text.strip()
+    print(f"Successfully transcribed scanned PDF using Gemini! Extracted {len(transcribed_text)} characters.")
+    return transcribed_text
+
 def extract_text(pdf_path: str) -> str:
-    """Extract text from a PDF file using PyMuPDF. Fallback to Gemini OCR if scanned."""
+    """Extract text from a PDF file using PyMuPDF. Fallback to Gemini Vision OCR if scanned.
+    Scanned PDFs are NEVER skipped — OCR retries up to 6 times on server errors."""
     print(f"Extracting text from {pdf_path}...")
     doc = fitz.open(pdf_path)
     text = ""
@@ -39,35 +53,23 @@ def extract_text(pdf_path: str) -> str:
             )
         
         if images:
-            try:
-                # Call Gemini to transcribe
-                prompt = "Transcribe all text from these document pages verbatim. Output only the transcription."
-                contents = [prompt] + images
-                response = client.models.generate_content(
-                    model=GENERATION_MODEL,
-                    contents=contents
-                )
-                transcribed_text = response.text.strip()
-                print(f"Successfully transcribed scanned PDF using Gemini! Extracted {len(transcribed_text)} characters.")
-                return transcribed_text
-            except Exception as e:
-                print(f"Gemini OCR transcription failed: {e}")
+            # This raises if all retries fail — the caller in main.py will catch and log it
+            return _ocr_images_with_gemini(images)
                 
     return cleaned_text
 
 @retry(stop=stop_after_attempt(6), wait=wait_exponential(multiplier=2, min=4, max=30))
 def process_document(text: str) -> dict:
     """
-    Analyzes document text using Gemini model and extracts structure.
+    Sends the document text to Gemini and returns a structured JSON object with:
+    - title, summary_en, region, doc_type, publish_year, department, keywords, referenced_acts
     """
-    print("Asking Gemini to process document...")
-    
     prompt = f"""
-    Analyze the following document text and extract these fields:
-    - "title": The title of the document.
-    - "summary_en": A brief 2-3 sentence summary in English.
-    - "region": 'central', 'gujarat', or 'unknown'.
-    - "doc_type": One of: 'act' (Acts and laws), 'gr' (Government Resolutions), 'notification' (Gazette notifications), 'judgment' (Court judgments and orders), 'circular' (Government circulars and directives), 'rules' (Statutory rules and regulations), 'scheme' (Government schemes and programmes), or 'other'.
+    Analyze this Indian legal document and extract the following fields as a JSON object:
+    - "title": The official title of the document (e.g. 'The Gujarat Tenancy Act, 1948'). 
+    - "summary_en": A clear, plain-English paragraph summarizing what this document is about and what it does.
+    - "region": Either 'gujarat', 'central', or 'unknown' based on whether this is a Gujarat state document or a Central government document.
+    - "doc_type": One of 'act', 'gr', 'notification', 'judgment', 'scheme', or 'other'.
     - "publish_year": An integer representing the year this document was issued/published (e.g. 2026, 1991, 2017). If the year is not mentioned and cannot be determined, set to null.
     - "department": The name of the government department or ministry that issued this document (e.g. 'Revenue Department', 'Education Department', 'Home Department', 'Finance Department', 'Health Department'). If unknown, set to null.
     - "keywords": A list of 5-8 short keyword strings that best describe the topics covered in this document (e.g. ["land acquisition", "compensation", "revenue"]). Always return as a JSON array.
@@ -79,7 +81,7 @@ def process_document(text: str) -> dict:
     """
     
     response = client.models.generate_content(
-        model='gemini-3.7-flash',
+        model=GENERATION_MODEL,
         contents=prompt,
         config=types.GenerateContentConfig(
             response_mime_type="application/json",
