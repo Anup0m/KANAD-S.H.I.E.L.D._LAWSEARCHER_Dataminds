@@ -22,7 +22,20 @@ function Navigation() {
   const { user } = useAuth();
 
   useEffect(() => {
-    getWhatsNew().then(setRecentDocs).catch(console.error);
+    getWhatsNew().then(docs => {
+      setRecentDocs(docs);
+      
+      // Bonus: Automatically download a few random documents for offline PWA access
+      if ('caches' in window && docs.length > 0) {
+        caches.open('kanan-offline-docs').then(cache => {
+          docs.slice(0, 3).forEach(doc => {
+            if (doc.pdf_url) {
+              cache.add(doc.pdf_url).catch(e => console.log('Offline cache skip:', e));
+            }
+          });
+        });
+      }
+    }).catch(console.error);
     getStats().then(s => { if (s && s.total_documents) setDocCount(s.total_documents); }).catch(console.error);
     
     // Close dropdown on click outside
