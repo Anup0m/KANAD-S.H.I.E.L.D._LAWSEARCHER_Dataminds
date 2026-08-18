@@ -211,6 +211,7 @@ export default function SearchPage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [docCount, setDocCount] = useState(136);
   const [isListening, setIsListening] = useState(false);
+  const [voiceLang, setVoiceLang] = useState('en-IN');
 
   useEffect(() => {
     getStats().then(s => { if (s && s.total_documents) setDocCount(s.total_documents); }).catch(console.error);
@@ -290,7 +291,7 @@ export default function SearchPage() {
     }
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    recognition.lang = 'en-IN'; // Tuned for Indian context
+    recognition.lang = voiceLang;
     recognition.interimResults = false;
     
     recognition.onstart = () => setIsListening(true);
@@ -359,22 +360,42 @@ export default function SearchPage() {
                 placeholder="Search laws, GRs, judgments, notifications..."
                 style={{
                   width: '100%',
-                  padding: '0.85rem 3.5rem 0.85rem 2.9rem',
+                  padding: '0.85rem 7.5rem 0.85rem 2.9rem',
                   background: 'transparent', border: 'none', outline: 'none',
                   color: 'var(--text-primary)', fontSize: '1.02rem', fontFamily: 'var(--font-body)',
                 }}
               />
-              <button 
-                onClick={handleVoiceSearch}
-                title="Search by voice"
-                style={{ 
-                  position: 'absolute', right: '1.1rem', top: '50%', transform: 'translateY(-50%)', 
-                  background: 'transparent', border: 'none', cursor: 'pointer',
-                  color: isListening ? '#ef4444' : 'var(--text-muted)'
-                }}
-              >
-                <Mic size={18} className={isListening ? 'animate-pulse' : ''} />
-              </button>
+              <div style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                <select 
+                  value={voiceLang}
+                  onChange={(e) => setVoiceLang(e.target.value)}
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: 'var(--text-secondary)',
+                    borderRadius: '4px',
+                    padding: '0.2rem 0.1rem',
+                    fontSize: '0.7rem',
+                    outline: 'none',
+                    cursor: 'pointer'
+                  }}
+                  title="Voice Language"
+                >
+                  <option value="en-IN">EN</option>
+                  <option value="hi-IN">HI</option>
+                  <option value="gu-IN">GU</option>
+                </select>
+                <button 
+                  onClick={handleVoiceSearch}
+                  title="Search by voice"
+                  style={{ 
+                    background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.4rem',
+                    color: isListening ? '#ef4444' : 'var(--text-muted)'
+                  }}
+                >
+                  <Mic size={18} className={isListening ? 'animate-pulse' : ''} />
+                </button>
+              </div>
             </div>
             <button className="btn btn-primary" onClick={() => applySearch()} style={{ padding: '0.75rem 2.2rem' }}>
               Search
