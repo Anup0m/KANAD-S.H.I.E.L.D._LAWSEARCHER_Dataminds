@@ -1,5 +1,5 @@
 // Central API client — all calls go through our FastAPI backend
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://kanan-backend-8ppm.onrender.com';
 
 export async function searchDocs({ q, doc_type, region, department, year_from, year_to, limit = 10 }) {
   const params = new URLSearchParams({ q, limit });
