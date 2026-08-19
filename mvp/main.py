@@ -366,7 +366,7 @@ def share_document(doc_id: str):
         backend_url = os.getenv("BACKEND_URL", "https://kanan-backend-8ppm.onrender.com").rstrip("/")
         og_image = f"{backend_url}/preview/{doc_id}.jpg"
         
-        frontend_base = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+        frontend_base = os.getenv("FRONTEND_URL", "https://kanad-s-h-i-e-l-d-lawsearcher-dataminds-61u14p9yn.vercel.app").rstrip("/")
         frontend_url = f"{frontend_base}/document/{doc_id}"
 
         html_content = f"""<!DOCTYPE html>
